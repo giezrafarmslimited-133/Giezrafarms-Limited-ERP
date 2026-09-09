@@ -1,0 +1,161 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Default deny catch-all
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Common Security Helper Functions
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() > 0 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-\\.]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function isRootAdmin() {
+      return isSignedIn() && request.auth.token.email == 'giezrafarmslimited@gmail.com';
+    }
+
+    function getUserRole() {
+      return exists(/databases/$(database)/documents/users/$(request.auth.uid))
+        ? get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role
+        : 'NONE';
+    }
+
+    function isAdmin() {
+      return isRootAdmin() || (isSignedIn() && getUserRole() in ['CEO', 'DEVELOPER', 'ASSISTANT_CEO']);
+    }
+
+    function isSalesStaff() {
+      return isAdmin() || (isSignedIn() && getUserRole() in ['SALES_MANAGER', 'OPERATIONS_MANAGER']);
+    }
+
+    function isStockStaff() {
+      return isAdmin() || (isSignedIn() && getUserRole() in ['STOCKING_MANAGER', 'OPERATIONS_MANAGER']);
+    }
+
+    function isStaffMember() {
+      return isSignedIn() && (isRootAdmin() || getUserRole() in ['CEO', 'ASSISTANT_CEO', 'OPERATIONS_MANAGER', 'SALES_MANAGER', 'STOCKING_MANAGER', 'DEVELOPER']);
+    }
+
+    // 1. Users Collection
+    match /users/{userId} {
+      allow read: if isSignedIn() && isValidId(userId);
+      allow create: if isSignedIn() && isValidId(userId) && (
+        isAdmin() || request.auth.uid == userId
+      );
+      allow update: if isSignedIn() && isValidId(userId) && (
+        isAdmin() || (request.auth.uid == userId && !incoming().diff(existing()).affectedKeys().hasAny(['role', 'status']))
+      );
+      allow delete: if isAdmin() && isValidId(userId);
+    }
+
+    // 2. Customers Collection
+    match /customers/{customerId} {
+      allow read: if isStaffMember() && isValidId(customerId);
+      allow create: if isSalesStaff() && isValidId(customerId) && incoming().customer_name is string;
+      allow update: if isSalesStaff() && isValidId(customerId);
+      allow delete: if isAdmin() && isValidId(customerId);
+    }
+
+    // 3. Products Collection
+    match /products/{productId} {
+      allow read: if isStaffMember() && isValidId(productId);
+      allow create: if isStockStaff() && isValidId(productId) && incoming().product_name is string;
+      allow update: if isStockStaff() && isValidId(productId);
+      allow delete: if isAdmin() && isValidId(productId);
+    }
+
+    // 4. Stock Movements Collection (Append-only Ledger)
+    match /stock_movements/{movementId} {
+      allow read: if isStaffMember() && isValidId(movementId);
+      allow create: if isStockStaff() && isValidId(movementId) && incoming().quantity is number;
+      allow update, delete: if false; // Immutable audit trail
+    }
+
+    // 5. Orders Collection & Items
+    match /orders/{orderId} {
+      allow read: if isStaffMember() && isValidId(orderId);
+      allow create: if isSalesStaff() && isValidId(orderId) && incoming().total_amount is number;
+      allow update: if isSalesStaff() && isValidId(orderId);
+      allow delete: if isAdmin() && isValidId(orderId);
+
+      match /items/{itemId} {
+        allow read: if isStaffMember() && isValidId(itemId);
+        allow create, update: if isSalesStaff() && isValidId(itemId);
+        allow delete: if isSalesStaff() && isValidId(itemId);
+      }
+    }
+
+    // 6. Payments Collection
+    match /payments/{paymentId} {
+      allow read: if isStaffMember() && isValidId(paymentId);
+      allow create: if isSalesStaff() && isValidId(paymentId) && incoming().amount is number && incoming().amount > 0;
+      allow update: if isAdmin() && isValidId(paymentId);
+      allow delete: if isAdmin() && isValidId(paymentId);
+    }
+
+    // 7. Expenses Collection
+    match /expenses/{expenseId} {
+      allow read: if isStaffMember() && isValidId(expenseId);
+      allow create: if (isAdmin() || getUserRole() == 'OPERATIONS_MANAGER') && isValidId(expenseId) && incoming().amount is number;
+      allow update: if isAdmin() && isValidId(expenseId);
+      allow delete: if isAdmin() && isValidId(expenseId);
+    }
+
+    // 8. Invoices Collection
+    match /invoices/{invoiceId} {
+      allow read: if isStaffMember() && isValidId(invoiceId);
+      allow create, update: if isSalesStaff() && isValidId(invoiceId);
+      allow delete: if isAdmin() && isValidId(invoiceId);
+    }
+
+    // 9. Quotations Collection
+    match /quotations/{quotationId} {
+      allow read: if isStaffMember() && isValidId(quotationId);
+      allow create, update: if isSalesStaff() && isValidId(quotationId);
+      allow delete: if isAdmin() && isValidId(quotationId);
+    }
+
+    // 10. Documents Collection (Business Files linked to Google Drive)
+    match /documents/{documentId} {
+      allow read: if isStaffMember() && isValidId(documentId);
+      allow create: if isStaffMember() && isValidId(documentId) && incoming().drive_file_id is string;
+      allow update: if isStaffMember() && isValidId(documentId);
+      allow delete: if isAdmin() && isValidId(documentId);
+    }
+
+    // 11. Activity Logs (Append-only Audit Trail)
+    match /activity_logs/{logId} {
+      allow read: if isStaffMember() && isValidId(logId);
+      allow create: if isSignedIn() && isValidId(logId);
+      allow update, delete: if false; // Immutable audit log
+    }
+
+    // 12. Settings Collection
+    match /settings/{settingId} {
+      allow read: if isStaffMember() && isValidId(settingId);
+      allow create, update: if isAdmin() && isValidId(settingId);
+      allow delete: if isAdmin() && isValidId(settingId);
+    }
+
+    // 13. Backups Collection
+    match /backups/{backupId} {
+      allow read: if isAdmin() && isValidId(backupId);
+      allow create: if isAdmin() && isValidId(backupId) && incoming().drive_file_id is string;
+      allow update, delete: if isAdmin() && isValidId(backupId);
+    }
+  }
+}

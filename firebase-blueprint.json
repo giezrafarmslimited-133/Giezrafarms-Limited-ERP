@@ -1,0 +1,356 @@
+{
+  "entities": {
+    "user": {
+      "title": "User",
+      "description": "System user account with Role-Based Access Control (RBAC) in Giezra Farms",
+      "type": "object",
+      "properties": {
+        "user_id": { "type": "string", "maxLength": 128 },
+        "full_name": { "type": "string", "maxLength": 150 },
+        "email": { "type": "string", "maxLength": 150 },
+        "phone": { "type": "string", "maxLength": 50 },
+        "role": {
+          "type": "string",
+          "enum": ["CEO", "ASSISTANT_CEO", "OPERATIONS_MANAGER", "SALES_MANAGER", "STOCKING_MANAGER", "DEVELOPER"]
+        },
+        "status": {
+          "type": "string",
+          "enum": ["ACTIVE", "INACTIVE", "SUSPENDED"]
+        },
+        "created_at": { "type": "string", "format": "date-time" },
+        "updated_at": { "type": "string", "format": "date-time" }
+      },
+      "required": ["user_id", "full_name", "email", "role", "status", "created_at"]
+    },
+    "customer": {
+      "title": "Customer",
+      "description": "B2B or retail poultry customer of Giezra Farms",
+      "type": "object",
+      "properties": {
+        "customer_id": { "type": "string", "maxLength": 128 },
+        "customer_name": { "type": "string", "maxLength": 150 },
+        "contact_person": { "type": "string", "maxLength": 150 },
+        "phone": { "type": "string", "maxLength": 50 },
+        "email": { "type": "string", "maxLength": 150 },
+        "address": { "type": "string", "maxLength": 300 },
+        "area": { "type": "string", "maxLength": 100 },
+        "customer_type": {
+          "type": "string",
+          "enum": ["HOTEL", "RESTAURANT", "SUPERMARKET", "BUTCHERY", "CATERER", "WHOLESALER", "RETAILER", "INDIVIDUAL", "OTHER"]
+        },
+        "payment_type": {
+          "type": "string",
+          "enum": ["CASH", "CREDIT", "BANK", "MOBILE_MONEY"]
+        },
+        "credit_limit": { "type": "number" },
+        "outstanding_balance": { "type": "number" },
+        "status": {
+          "type": "string",
+          "enum": ["ACTIVE", "INACTIVE", "SUSPENDED"]
+        },
+        "created_by": { "type": "string", "maxLength": 128 },
+        "created_at": { "type": "string", "format": "date-time" },
+        "updated_at": { "type": "string", "format": "date-time" }
+      },
+      "required": ["customer_id", "customer_name", "phone", "customer_type", "status", "created_at"]
+    },
+    "product": {
+      "title": "Product",
+      "description": "Poultry dressed cut, whole chicken, or by-product item",
+      "type": "object",
+      "properties": {
+        "product_id": { "type": "string", "maxLength": 128 },
+        "product_name": { "type": "string", "maxLength": 150 },
+        "category": { "type": "string", "maxLength": 100 },
+        "unit": { "type": "string", "maxLength": 20 },
+        "selling_price": { "type": "number" },
+        "wholesale_price": { "type": "number" },
+        "cost_price": { "type": "number" },
+        "minimum_order": { "type": "number" },
+        "current_stock": { "type": "number" },
+        "reorder_level": { "type": "number" },
+        "availability": { "type": "boolean" },
+        "created_at": { "type": "string", "format": "date-time" },
+        "updated_at": { "type": "string", "format": "date-time" }
+      },
+      "required": ["product_id", "product_name", "unit", "selling_price", "current_stock", "created_at"]
+    },
+    "stockMovement": {
+      "title": "StockMovement",
+      "description": "Auditable log of inventory adjustments, production additions, and sales removals",
+      "type": "object",
+      "properties": {
+        "movement_id": { "type": "string", "maxLength": 128 },
+        "product_id": { "type": "string", "maxLength": 128 },
+        "product_name": { "type": "string", "maxLength": 150 },
+        "movement_type": {
+          "type": "string",
+          "enum": ["PRODUCTION_IN", "PURCHASE_IN", "SALE_OUT", "ADJUSTMENT_IN", "ADJUSTMENT_OUT", "DAMAGE", "RETURN"]
+        },
+        "quantity": { "type": "number" },
+        "previous_stock": { "type": "number" },
+        "new_stock": { "type": "number" },
+        "reference": { "type": "string", "maxLength": 150 },
+        "notes": { "type": "string", "maxLength": 500 },
+        "performed_by": { "type": "string", "maxLength": 128 },
+        "created_at": { "type": "string", "format": "date-time" }
+      },
+      "required": ["movement_id", "product_id", "movement_type", "quantity", "performed_by", "created_at"]
+    },
+    "order": {
+      "title": "Order",
+      "description": "Customer order with items, fulfillment status, and payment tracking",
+      "type": "object",
+      "properties": {
+        "order_id": { "type": "string", "maxLength": 128 },
+        "order_number": { "type": "string", "maxLength": 50 },
+        "customer_id": { "type": "string", "maxLength": 128 },
+        "customer_name": { "type": "string", "maxLength": 150 },
+        "order_date": { "type": "string", "format": "date-time" },
+        "subtotal": { "type": "number" },
+        "discount": { "type": "number" },
+        "delivery_cost": { "type": "number" },
+        "total_amount": { "type": "number" },
+        "amount_paid": { "type": "number" },
+        "balance": { "type": "number" },
+        "payment_status": {
+          "type": "string",
+          "enum": ["UNPAID", "PARTIAL", "PAID"]
+        },
+        "order_status": {
+          "type": "string",
+          "enum": ["DRAFT", "PENDING", "CONFIRMED", "PROCESSING", "READY", "DELIVERED", "CANCELLED"]
+        },
+        "created_by": { "type": "string", "maxLength": 128 },
+        "created_at": { "type": "string", "format": "date-time" },
+        "updated_at": { "type": "string", "format": "date-time" }
+      },
+      "required": ["order_id", "order_number", "customer_id", "total_amount", "order_status", "payment_status", "created_at"]
+    },
+    "orderItem": {
+      "title": "OrderItem",
+      "description": "Line item inside a customer order",
+      "type": "object",
+      "properties": {
+        "item_id": { "type": "string", "maxLength": 128 },
+        "order_id": { "type": "string", "maxLength": 128 },
+        "product_id": { "type": "string", "maxLength": 128 },
+        "product_name": { "type": "string", "maxLength": 150 },
+        "quantity": { "type": "number" },
+        "unit_price": { "type": "number" },
+        "total_price": { "type": "number" }
+      },
+      "required": ["order_id", "product_id", "quantity", "unit_price", "total_price"]
+    },
+    "payment": {
+      "title": "Payment",
+      "description": "Payment transaction against an order, invoice, or customer credit balance",
+      "type": "object",
+      "properties": {
+        "payment_id": { "type": "string", "maxLength": 128 },
+        "customer_id": { "type": "string", "maxLength": 128 },
+        "order_id": { "type": "string", "maxLength": 128 },
+        "invoice_id": { "type": "string", "maxLength": 128 },
+        "amount": { "type": "number" },
+        "payment_method": {
+          "type": "string",
+          "enum": ["CASH", "BANK", "MOBILE_MONEY", "OTHER"]
+        },
+        "reference_number": { "type": "string", "maxLength": 100 },
+        "payment_date": { "type": "string", "format": "date-time" },
+        "received_by": { "type": "string", "maxLength": 128 },
+        "notes": { "type": "string", "maxLength": 500 },
+        "created_at": { "type": "string", "format": "date-time" }
+      },
+      "required": ["payment_id", "customer_id", "amount", "payment_method", "created_at"]
+    },
+    "expense": {
+      "title": "Expense",
+      "description": "Operational expense voucher (feed, labor, utilities, packaging)",
+      "type": "object",
+      "properties": {
+        "expense_id": { "type": "string", "maxLength": 128 },
+        "category": { "type": "string", "maxLength": 100 },
+        "amount": { "type": "number" },
+        "description": { "type": "string", "maxLength": 300 },
+        "expense_date": { "type": "string", "format": "date-time" },
+        "paid_to": { "type": "string", "maxLength": 150 },
+        "created_by": { "type": "string", "maxLength": 128 },
+        "created_at": { "type": "string", "format": "date-time" }
+      },
+      "required": ["expense_id", "category", "amount", "created_at"]
+    },
+    "invoice": {
+      "title": "Invoice",
+      "description": "Commercial tax invoice metadata with Google Drive PDF linkage",
+      "type": "object",
+      "properties": {
+        "invoice_id": { "type": "string", "maxLength": 128 },
+        "invoice_number": { "type": "string", "maxLength": 50 },
+        "customer_id": { "type": "string", "maxLength": 128 },
+        "order_id": { "type": "string", "maxLength": 128 },
+        "total": { "type": "number" },
+        "amount_paid": { "type": "number" },
+        "balance": { "type": "number" },
+        "drive_file_id": { "type": "string", "maxLength": 200 },
+        "drive_file_url": { "type": "string", "maxLength": 500 },
+        "created_by": { "type": "string", "maxLength": 128 },
+        "created_at": { "type": "string", "format": "date-time" }
+      },
+      "required": ["invoice_id", "invoice_number", "customer_id", "total", "created_at"]
+    },
+    "quotation": {
+      "title": "Quotation",
+      "description": "Price quotation metadata with Google Drive PDF linkage",
+      "type": "object",
+      "properties": {
+        "quotation_id": { "type": "string", "maxLength": 128 },
+        "quotation_number": { "type": "string", "maxLength": 50 },
+        "customer_id": { "type": "string", "maxLength": 128 },
+        "customer_name": { "type": "string", "maxLength": 150 },
+        "valid_until": { "type": "string", "format": "date-time" },
+        "subtotal": { "type": "number" },
+        "discount": { "type": "number" },
+        "total": { "type": "number" },
+        "status": {
+          "type": "string",
+          "enum": ["DRAFT", "SENT", "ACCEPTED", "REJECTED", "EXPIRED"]
+        },
+        "drive_file_id": { "type": "string", "maxLength": 200 },
+        "drive_file_url": { "type": "string", "maxLength": 500 },
+        "created_by": { "type": "string", "maxLength": 128 },
+        "created_at": { "type": "string", "format": "date-time" }
+      },
+      "required": ["quotation_id", "quotation_number", "customer_id", "total", "status", "created_at"]
+    },
+    "document": {
+      "title": "Document",
+      "description": "Uploaded business document with Google Drive file storage and Firestore metadata",
+      "type": "object",
+      "properties": {
+        "document_id": { "type": "string", "maxLength": 128 },
+        "document_name": { "type": "string", "maxLength": 200 },
+        "document_type": { "type": "string", "maxLength": 100 },
+        "drive_file_id": { "type": "string", "maxLength": 200 },
+        "drive_file_url": { "type": "string", "maxLength": 500 },
+        "file_size": { "type": "number" },
+        "uploaded_by": { "type": "string", "maxLength": 128 },
+        "created_at": { "type": "string", "format": "date-time" }
+      },
+      "required": ["document_id", "document_name", "drive_file_id", "uploaded_by", "created_at"]
+    },
+    "activityLog": {
+      "title": "ActivityLog",
+      "description": "System audit trail for traceability and compliance",
+      "type": "object",
+      "properties": {
+        "log_id": { "type": "string", "maxLength": 128 },
+        "user_id": { "type": "string", "maxLength": 128 },
+        "user_name": { "type": "string", "maxLength": 150 },
+        "action": { "type": "string", "maxLength": 100 },
+        "module": { "type": "string", "maxLength": 100 },
+        "record_id": { "type": "string", "maxLength": 128 },
+        "description": { "type": "string", "maxLength": 500 },
+        "created_at": { "type": "string", "format": "date-time" }
+      },
+      "required": ["log_id", "user_id", "action", "module", "description", "created_at"]
+    },
+    "settings": {
+      "title": "Settings",
+      "description": "Global enterprise configurations (company identity, banking, invoice numbering, tax)",
+      "type": "object",
+      "properties": {
+        "setting_id": { "type": "string", "maxLength": 128 },
+        "company_name": { "type": "string", "maxLength": 150 },
+        "company_address": { "type": "string", "maxLength": 300 },
+        "phone": { "type": "string", "maxLength": 50 },
+        "email": { "type": "string", "maxLength": 150 },
+        "logo": { "type": "string", "maxLength": 500 },
+        "bank_name": { "type": "string", "maxLength": 150 },
+        "account_name": { "type": "string", "maxLength": 150 },
+        "account_number": { "type": "string", "maxLength": 100 },
+        "swift_code": { "type": "string", "maxLength": 50 },
+        "tax_rate": { "type": "number" },
+        "currency": { "type": "string", "maxLength": 10 },
+        "invoice_prefix": { "type": "string", "maxLength": 20 },
+        "quotation_prefix": { "type": "string", "maxLength": 20 },
+        "updated_at": { "type": "string", "format": "date-time" }
+      },
+      "required": ["setting_id", "company_name", "currency"]
+    },
+    "backup": {
+      "title": "Backup",
+      "description": "Full database export snapshot archived to Google Drive",
+      "type": "object",
+      "properties": {
+        "backup_id": { "type": "string", "maxLength": 128 },
+        "file_name": { "type": "string", "maxLength": 200 },
+        "format": { "type": "string", "enum": ["JSON", "CSV"] },
+        "drive_file_id": { "type": "string", "maxLength": 200 },
+        "drive_file_url": { "type": "string", "maxLength": 500 },
+        "record_count": { "type": "number" },
+        "created_by": { "type": "string", "maxLength": 128 },
+        "created_at": { "type": "string", "format": "date-time" }
+      },
+      "required": ["backup_id", "file_name", "drive_file_id", "created_by", "created_at"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "user",
+      "description": "User profiles and RBAC assignments"
+    },
+    "/customers/{customerId}": {
+      "schema": "customer",
+      "description": "Poultry client profiles and debt ledger"
+    },
+    "/products/{productId}": {
+      "schema": "product",
+      "description": "Chicken products, prices, and stock inventory levels"
+    },
+    "/stock_movements/{movementId}": {
+      "schema": "stockMovement",
+      "description": "Immutable ledger of all inventory additions, sales, and adjustments"
+    },
+    "/orders/{orderId}": {
+      "schema": "order",
+      "description": "Customer purchase orders and fulfillment tracking"
+    },
+    "/orders/{orderId}/items/{itemId}": {
+      "schema": "orderItem",
+      "description": "Line items for customer order"
+    },
+    "/payments/{paymentId}": {
+      "schema": "payment",
+      "description": "Customer payments and reconciliation records"
+    },
+    "/expenses/{expenseId}": {
+      "schema": "expense",
+      "description": "Operational and production expenditure records"
+    },
+    "/invoices/{invoiceId}": {
+      "schema": "invoice",
+      "description": "Invoice documents with Google Drive PDF links"
+    },
+    "/quotations/{quotationId}": {
+      "schema": "quotation",
+      "description": "Quotation documents with Google Drive PDF links"
+    },
+    "/documents/{documentId}": {
+      "schema": "document",
+      "description": "Business documents stored in Google Drive"
+    },
+    "/activity_logs/{logId}": {
+      "schema": "activityLog",
+      "description": "Audit trail entries"
+    },
+    "/settings/{settingId}": {
+      "schema": "settings",
+      "description": "Company operational parameters and bank info"
+    },
+    "/backups/{backupId}": {
+      "schema": "backup",
+      "description": "Database backup archive records"
+    }
+  }
+}

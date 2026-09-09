@@ -1,0 +1,25 @@
+@import "tailwindcss";
+
+@layer utilities {
+  .bg-frosted-radial {
+    background: radial-gradient(circle at top left, #1b4332, #081c15, #040d0a);
+  }
+  .bg-frosted-card {
+    background: rgba(255, 255, 255, 0.06);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+  }
+  .bg-frosted-card-dark {
+    background: rgba(8, 28, 21, 0.65);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(212, 175, 55, 0.18);
+  }
+  .bg-frosted-glass-light {
+    background: rgba(255, 255, 255, 0.75);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(255, 255, 255, 0.4);
+  }
+}

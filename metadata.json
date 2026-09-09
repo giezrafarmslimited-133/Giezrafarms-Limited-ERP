@@ -1,0 +1,6 @@
+{
+  "name": "GIEZRA ERP",
+  "description": "Smart Poultry Business Management System for GIEZRA FARMS LIMITED",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
